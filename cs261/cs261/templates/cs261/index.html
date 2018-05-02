@@ -1,0 +1,143 @@
+{% extends 'cs261/main.html' %}
+{% load staticfiles %}
+
+{% block head %}
+    <script src="{% static 'jquery-3.3.1.min.js' %}"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+
+    <script>
+
+        // Not to be confused with AdBlock.
+        function addBlock(text, useText) {
+            useText = useText || false;
+            const $block = $('<div class="panel"></div>');
+
+            // Date
+            var date = new Date();
+            var time = "("+date.getDate() + "/"
+                + (date.getMonth()+1)  + "/"
+                + date.getFullYear() + " @ "
+                + date.getHours() + ":"
+                + date.getMinutes() + ":"
+                + date.getSeconds()+")";
+
+                // message
+            var str = '<article class="media"> \
+                      <figure class="media-left"> \
+                        <p class="image is-64x64"> \
+                          <img src="https://warwick.ac.uk/fac/sci/dcs/people/stephen.jpg"> \
+                        </p> \
+                      </figure>\
+                      <div class="media-content">\
+                        <div class="content">\
+                          <p>\
+                            <strong>You</strong> <small>@CS261</small> <small>'+date+'</small>\
+                            <br>'+text+'\
+                          </p>\
+                        </div>\
+                      </div>\
+                    </article>';
+
+            useText ? $block.append(str) : $block.append(text);
+            $('#form').before($block);
+
+            // auto scroll
+            var objDiv = document.getElementById('box');
+            objDiv.scrollTop = objDiv.scrollHeight;
+        }
+
+        function makeBuzzResponse(data) {
+            var date = new Date();
+            return $('<article class="media"> \
+                       <figure class="media-left"> \
+                         <p class="image is-64x64"> \
+                           <img src="https://scontent-lht6-1.xx.fbcdn.net/v/t34.0-12/28741390_10214323860584612_1902458621_n.png?oh=9a382dbed1e71ede6e879b08000a7062&oe=5AA4EA4B"> \
+                         </p> \
+                       </figure>\
+                       <div class="media-content">\
+                         <div class="content">\
+                           <p>\
+                             <strong>Buzz</strong> <small>@beehive</small> <small>'+date+'</small>\
+                             <br>'+data+'\
+                           </p>\
+                         </div>\
+                       </div>\
+                     </article>');
+        }
+
+        function doQuery() {
+            const $input = $('input[type="text"]');
+            const q = $input.val().trim();
+            if (q == '') return;
+            $input.val('');
+            addBlock(q, true);
+
+            $input.parent().addClass('is-loading');
+            $('.button').attr('disabled', '')
+
+
+            $.get('/query', {q: q}, function(data, status, xhr) {
+                console.log(data);
+                $input.parent().removeClass('is-loading');
+                $('.button').attr('disabled', false);
+                addBlock(makeBuzzResponse(data));
+                $input.focus();
+            });
+
+            //$input.focus();
+        }
+
+        $(function() {
+            $('.button').click(doQuery);
+            $('input[type="text"]').keypress(function(e) {
+                if(e.key === 'Enter') doQuery(e);
+            });
+        });
+
+    </script>
+{% endblock %}
+
+{% block body %}
+
+    <section class="hero is-warning">
+        <div class="hero-body" style="height: 50px;">
+            <div class="container" style="position: absolute; top:10px;">
+                <h1 class="title">
+                    Buzz, the chatbot
+                </h1>
+            <h2 class="subtitle">
+                version 1.0
+            </h2>
+            </div>
+        </div>
+    </section>
+
+    <div class="box" id="box" style="height: 70vh; overflow-y: scroll;">
+        <div class="panel" id="form" style="position: relative; bottom: 0;">
+        </div>
+    </div>
+
+{% comment bleh %}
+    <script>addBlock(makeBuzzResponse('You have recently been interesed in \
+{% for f, new in faves.items %}\
+{{f}}{{new}}\
+{% if forloop.revcounter0 > 1%},{%endif%}{% if forloop.revcounter0 == 1%} and {% endif %}\
+{% endfor %}.\
+'));</script>
+{% endcomment %}
+
+{% if fave %}<script>addBlock(makeBuzzResponse('You have recently been interested in {{fave.name}}. Its spot price is {{fave.spotprice}}. Here\'s a related news article: <a href="{{fave.news.link}}">{{fave.news.title}}</a>\
+		<span class="tag is-{% if fave.news.sentiment_name == "positive"%}success{%elif fave.news.sentiment_name == "negative"%}danger{%else%}primary{%endif%}">{{fave.news.sentiment_name}}</span>'));</script>{%endif%}
+
+
+
+    <div class="field has-addons">
+        <div class="control is-expanded">
+            <input class="input" autofocus maxlength=254 type="text" placeholder="Query">
+        </div>
+        <div class="control">
+            <a class="button is-info">Send</a>
+        </div>
+    </div>
+
+{% endblock %}

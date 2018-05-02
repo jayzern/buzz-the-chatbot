@@ -1,0 +1,12 @@
+{% comment %}
+	AJAX response
+{% endcomment %}
+{{message}}
+{% if news %}
+<ul>
+	{% for new in news %}
+	<li><a href="{{new.link}}">{%autoescape off%}{{new.title}}{%endautoescape%}</a>
+			<span class="tag is-{% if new.sentiment_name == "positive"%}success{%elif new.sentiment_name == "negative"%}danger{%else%}primary{%endif%}">{{new.sentiment_name}}</span></li>
+	{% endfor %}
+</ul>
+{% endif %}

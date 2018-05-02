@@ -1,0 +1,6 @@
+Django>=2.0.2
+requests>=2.18.4
+pandas
+bs4
+lxml
+nltk
